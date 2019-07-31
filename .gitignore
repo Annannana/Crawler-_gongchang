@@ -1,0 +1,19 @@
+.idea
+
+*.pyc
+*.log*
+
+nohup.out
+
+# log
+.DS_Store
+venv
+
+job_info
+
+build/
+*.egg-info/
+eggs/
+.eggs/
+*.egg
+setup.py
