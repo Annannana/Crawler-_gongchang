@@ -53,6 +53,8 @@ class CompanySpider(scrapy.Spider):
                 categories.append(categ[index-1])
 
         index += 1
+
+        # for testing
         categories_links = ['index.php?moduleid=4&catid=20019&areaid=0']
         categories = ['代理']
         for category, link in zip(categories, categories_links):
