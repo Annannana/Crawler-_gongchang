@@ -53,7 +53,7 @@ DOWNLOADER_MIDDLEWARES = {
 
 ITEM_PIPELINES = {
     # '{}.pipelines.DuplicatesFilterPipeline'.format(BOT_NAME): 99,
-    '{}.pipelines.MongoPipeline'.format(BOT_NAME): 100,
+    # '{}.pipelines.MongoPipeline'.format(BOT_NAME): 100,
 }
 
 PROXIES = "http://proxy.dianhua.cn:8080"
@@ -63,6 +63,7 @@ PROXIES = "http://proxy.dianhua.cn:8080"
 MONGODB_HOST = os.getenv("SPIDER_MONGO_URL", "172.18.19.121")
 MONGODB_PORT = 27017
 MONGODB_DB = os.getenv("SPIDER_MONGO_DB", "data-china")
+# MONGODB_COLLECTION = f"china-gongchang-yp-190731"
 MONGODB_COLLECTION = f"china-gongchang-yp-190731"
 
 # Redis数据库的配置信息
