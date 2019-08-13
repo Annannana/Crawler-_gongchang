@@ -37,12 +37,28 @@ class CompanySpider(scrapy.Spider):
 
     def parse(self, response):
         # get all categories and their links
+        #
+        # its better to decide links by the size of categories
+
+        # (
+        # big_cate_list = response.xpath("//li[@class='directory']/text()").getall()
+        # for index, big_cate in enumerate(big_cate_list, 1):
+        #     if '全部分类' == big_cate.strip(): continue
+        #     two_directory = response.xpath("//ul[$index]/li[@class='two_directory']", index=index)
+        #     is_one = len(two_directory) == 1
+        #     for t_index, t in enumerate(two_directory):
+        #         if not (is_one or (not is_one and t_index != 0)): continue
+        #         url = response.urljoin(t.xpath("./a/@href").get())
+        #         category = t.xpath("./a/text()").get() if not is_one else big_cate
+        #         yield scrapy.Request(url=url, callback=self.parse_category,
+        #                              meta={'page': 1, 'category': category, 'base_url': url})
+        # ）
+
         categ = response.xpath("//li[@class='directory']/text()").getall()
         categories_links = []
         categories = []
         index = 1
         for each in response.xpath("//div[@id='second_list']/ul"):
-            self.logger.info('index:'+str(index))
             if (index > 1 and index < 5) or index == 7:
                 categories_links.extend(
                     each.xpath('.//li[@class="two_directory" and not(contains(a,"全部"))]//a/@href').getall())
@@ -51,10 +67,7 @@ class CompanySpider(scrapy.Spider):
             elif index == 5 or index == 6:
                 categories_links.extend(each.xpath('.//li[@class="two_directory"]//a/@href').getall())
                 categories.append(categ[index-1])
-
-        index += 1
-
-        # for testing
+            index += 1
         categories_links = ['index.php?moduleid=4&catid=20019&areaid=0']
         categories = ['代理']
         for category, link in zip(categories, categories_links):
@@ -72,6 +85,9 @@ class CompanySpider(scrapy.Spider):
             total_page = re.findall('.*?<b>1</b>/(.*?)</a>.*?', response.text)
             if total_page:
                 total_page = int(total_page[0])
+                self.logger.info('total page:' + str(total_page))
+            else:
+                self.logger.info('total page: NULL')
 
             if total_page == 50 and 'areaid=0' in base_url:
                 check = True
@@ -85,19 +101,20 @@ class CompanySpider(scrapy.Spider):
                     url = base_url + '&page=' + str(i)
                     yield scrapy.Request(url=url, callback=self.parse_category,
                                          meta={'page': i, 'category': category, 'base_url': base_url})
-        if not check:
-            for company in response.xpath("//div[@class='list-img']"):
-                link = 'https://mobile.gongchang.com/' + company.xpath(".//a/@href").get('')
-                item = GongchangItem()
-                item['category'] = [category]
-                item['name'] = company.xpath(".//strong/text()").get('')
-                item['mainproduct'] = company.xpath(".//li[2]/span/text()").get('').split('：')[1].split(',')
-                item['city'] = company.xpath(".//li[3]/span/text()").get('').split('\xa0\xa0')[0]
-                # link = 'https://mobile.gongchang.com/index.php?moduleid=4&username=jichao'
-                # link = 'https://mobile.gongchang.com/index.php?moduleid=4&username=kutekj'
-                yield scrapy.Request(url=link, callback=self.parse_company,
-                                     meta={'base_url': link, 'item': item})
 
+        for company in response.xpath("//div[@class='list-img']"):
+            link = 'https://mobile.gongchang.com/' + company.xpath(".//a/@href").get('')
+            item = GongchangItem()
+            item['category'] = [category]
+            item['name'] = company.xpath(".//strong/text()").get('')
+            item['mainproduct'] = company.xpath(".//li[2]/span/text()").get('').split('：')[1].split(',')
+            item['city'] = company.xpath(".//li[3]/span/text()").get('').split('\xa0\xa0')[0]
+            # link = 'https://mobile.gongchang.com/index.php?moduleid=4&username=jichao'
+            # link = 'https://mobile.gongchang.com/index.php?moduleid=4&username=kutekj'
+            yield scrapy.Request(url=link, callback=self.parse_company,
+                                 meta={'base_url': link, 'item': item})
+
+    # two kinds of companies' main page
     def parse_company(self, response):
         item = response.meta.get('item')
         base_url = response.meta.get('base_url')
